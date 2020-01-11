@@ -24,7 +24,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <Arduino.h>
-#include <Ethernet.h>
+#include <eethernet.h>
 #include <EthernetUdp.h>
 
 extern "C" {
