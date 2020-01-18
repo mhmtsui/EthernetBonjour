@@ -24,11 +24,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <Arduino.h>
-#include <eethernet.h>
-#include <EthernetUdp.h>
+#include "../Ethernet/eethernet.h"
+#include "../Ethernet/EthernetUdp.h"
 
 extern "C" {
-   #include <utility/EthernetUtil.h>
+   #include "utility/EthernetUtil.h"
 }
 
 #include "EthernetBonjour.h"
