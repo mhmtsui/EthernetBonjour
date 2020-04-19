@@ -25,7 +25,7 @@ extern "C" {
    #include <inttypes.h>
 }
 
-#define MAX_MDNS_NAME (23)
+#define MAX_MDNS_NAME (100)
 #define MAX_SERVICE_NAME (50)
 #define MAX_UDP_LENGTH (1024)
 

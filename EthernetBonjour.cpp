@@ -1155,7 +1155,7 @@ int EthernetBonjourClass::addServiceRecord(const char* name, uint16_t port,
 					   MDNSServiceProtocol_t proto, const char* textContent)
 {
 	int i, status = 0;
-	static MDNSServiceRecord_t  recordb;
+	MDNSServiceRecord_t  recordb;
 	MDNSServiceRecord_t* record = &recordb;
 
 	if (NULL != name && 0 != port) {
@@ -1166,13 +1166,13 @@ int EthernetBonjourClass::addServiceRecord(const char* name, uint16_t port,
 					record->name = record->textContent = NULL;
 
 					//record->name = (uint8_t*)my_malloc( strlen( (char*)name ) + 1 );
-					memset(record->name, 0, strlen( (char*)name ) + 1);
+					//memset(record->name, 0, strlen( (char*)name ) + 1);
 					if (NULL == record->name)
 						goto errorReturn;
 
 					if (NULL != textContent) {
 						//record->textContent = (uint8_t*)my_malloc( strlen( (char*)textContent ) + 1);
-						memset(record->textContent, 0, strlen( (char*)textContent ) + 1);
+						//memset(record->textContent, 0, strlen( (char*)textContent ) + 1);
 						if (NULL == record->textContent)
 							goto errorReturn;
 
@@ -1185,7 +1185,7 @@ int EthernetBonjourClass::addServiceRecord(const char* name, uint16_t port,
 
 					uint8_t* s = this->_findFirstDotFromRight(record->name);
 					//record->servName = (uint8_t*)my_malloc(strlen( (char*)s ) + 13);
-					memset(record->servName, 0, strlen( (char*)s ) + 13);
+					//memset(record->servName, 0, strlen( (char*)s ) + 13);
 					if (record->servName) {
 						strcpy( (char*)record->servName, (const char*)s );
 
