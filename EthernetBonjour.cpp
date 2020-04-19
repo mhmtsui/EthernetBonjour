@@ -18,8 +18,8 @@
 //  <http://www.gnu.org/licenses/>.
 //
 
-#define  HAS_SERVICE_REGISTRATION      1	// disabling saves about 1.25 kilobytes
-#define  HAS_NAME_BROWSING             1	// disable together with above, additionally saves about 4.3 kilobytes
+#define  HAS_SERVICE_REGISTRATION      0	// disabling saves about 1.25 kilobytes
+#define  HAS_NAME_BROWSING             0	// disable together with above, additionally saves about 4.3 kilobytes
 
 #include <string.h>
 #include <stdlib.h>
@@ -44,7 +44,7 @@ extern "C" {
 #define  MDNS_MAX_SERVICES_PER_PACKET  (6)
 
 //#define  _BROKEN_MALLOC_   1
-#undef _USE_MALLOC_
+//#undef _USE_MALLOC_
 
 static uint8_t mdnsMulticastIPAddr[] = { 224, 0, 0, 251 };
 //static uint8_t mdnsHWAddr[] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb };
@@ -85,31 +85,31 @@ typedef enum _DNSOpCode_t {
 } DNSOpCode_t;
 
 // for some reason, I get data corruption issues with normal malloc() on arduino 0017
-void* my_malloc(unsigned s)
-{
-#if defined(_BROKEN_MALLOC_)
-	char* b = (char*)malloc(s + 2);
-	if (b)
-		b++;
+// void* my_malloc(unsigned s)
+// {
+// #if defined(_BROKEN_MALLOC_)
+// 	char* b = (char*)malloc(s + 2);
+// 	if (b)
+// 		b++;
 
-	return (void*)b;
-#else
-	return malloc(s);
-#endif
-}
+// 	return (void*)b;
+// #else
+// 	return malloc(s);
+// #endif
+// }
 
-void my_free(void* ptr)
-{
-#if defined(_BROKEN_MALLOC_)
-	char* b = (char*)ptr;
-	if (b)
-		b--;
+// void my_free(void* ptr)
+// {
+// #if defined(_BROKEN_MALLOC_)
+// 	char* b = (char*)ptr;
+// 	if (b)
+// 		b--;
 
-	free(b);
-#else
-	free(ptr);
-#endif
-}
+// 	free(b);
+// #else
+// 	free(ptr);
+// #endif
+// }
 
 EthernetBonjourClass::EthernetBonjourClass()
 {
@@ -119,7 +119,7 @@ EthernetBonjourClass::EthernetBonjourClass()
 	this->_state = MDNSStateIdle;
 //   this->_sock = -1;
 
-	this->_bonjourName = NULL;
+	//this->_bonjourName = NULL;
 	this->_resolveNames[0] = NULL;
 	this->_resolveNames[1] = NULL;
 
@@ -179,8 +179,8 @@ int EthernetBonjourClass::_initQuery(uint8_t idx, const char* name, unsigned lon
 								     (idx == 0) ? MDNSPacketTypeNameQuery :
 								     MDNSPacketTypeServiceQuery,
 								     0) );
-	} else
-		my_free( (void*)name );
+	} //else
+		//my_free( (void*)name );
 
 	return statusCode;
 }
@@ -188,7 +188,7 @@ int EthernetBonjourClass::_initQuery(uint8_t idx, const char* name, unsigned lon
 void EthernetBonjourClass::_cancelQuery(uint8_t idx)
 {
 	if (NULL != this->_resolveNames[idx]) {
-		my_free(this->_resolveNames[idx]);
+		//my_free(this->_resolveNames[idx]);
 		this->_resolveNames[idx] = NULL;
 	}
 }
@@ -200,7 +200,10 @@ int EthernetBonjourClass::resolveName(const char* name, unsigned long timeout)
 {
 	this->cancelResolveName();
 
-	char* n = (char*)my_malloc(strlen(name) + 7);
+	char n[MAX_MDNS_NAME];
+	if (strlen(name) + 7 > MAX_MDNS_NAME)
+		return 0;
+	//char* n = (char*)my_malloc(strlen(name) + 7);
 	if (NULL == n)
 		return 0;
 
@@ -239,7 +242,10 @@ int EthernetBonjourClass::startDiscoveringService(const char* serviceName,
 {
 	this->stopDiscoveringService();
 
-	char* n = (char*)my_malloc(strlen(serviceName) + 13);
+	char n[MAX_SERVICE_NAME];
+	if (strlen(serviceName) + 13 > MAX_SERVICE_NAME)
+		return 0;
+	//char* n = (char*)my_malloc(strlen(serviceName) + 13);
 	if (NULL == n)
 		return 0;
 
@@ -515,7 +521,7 @@ MDNSError_t EthernetBonjourClass::_processMDNSQuery()
 	uint8_t recordsAskedFor[NumMDNSServiceRecords + 2];
 	uint8_t recordsFound[2];
 	uint8_t wantsIPv6Addr = 0;
-	uint8_t * udpBuffer = NULL;
+	static uint8_t * udpBuffer[MAX_UDP_LENGTH];// = NULL;
 	uintptr_t ptr;
 
 	memset( recordsAskedFor, 0, sizeof(uint8_t) * (NumMDNSServiceRecords + 2) );
@@ -528,7 +534,7 @@ MDNSError_t EthernetBonjourClass::_processMDNSQuery()
 		goto errorReturn;
 	}
 
-	udpBuffer = (uint8_t*) my_malloc(udp_len);	//allocate memory to hold _remaining UDP packet
+	//udpBuffer = (uint8_t*) my_malloc(udp_len);	//allocate memory to hold _remaining UDP packet
 	if (NULL == udpBuffer) {
 		this->flush();
 		statusCode = MDNSOutOfMemory;
@@ -1015,7 +1021,7 @@ MDNSError_t EthernetBonjourClass::_processMDNSQuery()
 
 #endif	// (defined(HAS_SERVICE_REGISTRATION) && HAS_SERVICE_REGISTRATION) || (defined(HAS_NAME_BROWSING) && HAS_NAME_BROWSING)
 
-	my_free(udpBuffer);
+	//my_free(udpBuffer);
 
 errorReturn:
 
@@ -1086,7 +1092,7 @@ void EthernetBonjourClass::run()
 				}
 
 				if (NULL != this->_resolveNames[i]) {
-					my_free(this->_resolveNames[i]);
+					//my_free(this->_resolveNames[i]);
 					this->_resolveNames[i] = NULL;
 				}
 			}
@@ -1113,15 +1119,18 @@ int EthernetBonjourClass::setBonjourName(const char* bonjourName)
 	if (NULL == bonjourName)
 		return 0;
 
-	if (this->_bonjourName != NULL)
-		my_free(this->_bonjourName);
-
-	this->_bonjourName = (uint8_t*)my_malloc(strlen(bonjourName) + 7);
-	if (NULL == this->_bonjourName)
+	if (strlen(bonjourName) > MAX_MDNS_NAME)
 		return 0;
 
+	// if (this->_bonjourName != NULL)
+	// 	my_free(this->_bonjourName);
+
+	// this->_bonjourName = (uint8_t*)my_malloc(strlen(bonjourName) + 7);
+	// if (NULL == this->_bonjourName)
+	// 	return 0;
+
 	strcpy( (char*)this->_bonjourName, bonjourName );
-	strcpy( (char*)this->_bonjourName + strlen(bonjourName), MDNS_TLD );
+	strcpy( (char*)this->_bonjourName + strlen(bonjourName), MDNS_TLD);
 
 	return 1;
 }
@@ -1146,22 +1155,23 @@ int EthernetBonjourClass::addServiceRecord(const char* name, uint16_t port,
 					   MDNSServiceProtocol_t proto, const char* textContent)
 {
 	int i, status = 0;
-	MDNSServiceRecord_t* record = NULL;
+	static MDNSServiceRecord_t  recordb;
+	MDNSServiceRecord_t* record = &recordb;
 
 	if (NULL != name && 0 != port) {
 		for (i = 0; i < NumMDNSServiceRecords; i++) {
 			if (NULL == this->_serviceRecords[i]) {
-				record = (MDNSServiceRecord_t*)my_malloc( sizeof(MDNSServiceRecord_t) );
+				//record = (MDNSServiceRecord_t*)my_malloc( sizeof(MDNSServiceRecord_t) );
 				if (NULL != record) {
 					record->name = record->textContent = NULL;
 
-					record->name = (uint8_t*)my_malloc( strlen( (char*)name ) + 1 );
+					//record->name = (uint8_t*)my_malloc( strlen( (char*)name ) + 1 );
 					memset(record->name, 0, strlen( (char*)name ) + 1);
 					if (NULL == record->name)
 						goto errorReturn;
 
 					if (NULL != textContent) {
-						record->textContent = (uint8_t*)my_malloc( strlen( (char*)textContent ) + 1);
+						//record->textContent = (uint8_t*)my_malloc( strlen( (char*)textContent ) + 1);
 						memset(record->textContent, 0, strlen( (char*)textContent ) + 1);
 						if (NULL == record->textContent)
 							goto errorReturn;
@@ -1174,7 +1184,7 @@ int EthernetBonjourClass::addServiceRecord(const char* name, uint16_t port,
 					strcpy( (char*)record->name, name );
 
 					uint8_t* s = this->_findFirstDotFromRight(record->name);
-					record->servName = (uint8_t*)my_malloc(strlen( (char*)s ) + 13);
+					//record->servName = (uint8_t*)my_malloc(strlen( (char*)s ) + 13);
 					memset(record->servName, 0, strlen( (char*)s ) + 13);
 					if (record->servName) {
 						strcpy( (char*)record->servName, (const char*)s );
@@ -1198,16 +1208,16 @@ int EthernetBonjourClass::addServiceRecord(const char* name, uint16_t port,
 	return status;
 
 errorReturn:
-	if (NULL != record) {
-		if (NULL != record->name)
-			my_free(record->name);
-		if (NULL != record->servName)
-			my_free(record->servName);
-		if (NULL != record->textContent)
-			my_free(record->textContent);
+	// if (NULL != record) {
+	// 	if (NULL != record->name)
+	// 		my_free(record->name);
+	// 	if (NULL != record->servName)
+	// 		my_free(record->servName);
+	// 	if (NULL != record->textContent)
+	// 		my_free(record->textContent);
 
-		my_free(record);
-	}
+	// 	my_free(record);
+	// }
 
 	return 0;
 }
@@ -1217,14 +1227,14 @@ void EthernetBonjourClass::_removeServiceRecord(int idx)
 	if (NULL != this->_serviceRecords[idx]) {
 		(void)this->_sendMDNSMessage(0, 0, (int)MDNSPacketTypeServiceRecordRelease, idx);
 
-		if (NULL != this->_serviceRecords[idx]->textContent)
-			my_free(this->_serviceRecords[idx]->textContent);
+		// if (NULL != this->_serviceRecords[idx]->textContent)
+		// 	my_free(this->_serviceRecords[idx]->textContent);
 
-		if (NULL != this->_serviceRecords[idx]->servName)
-			my_free(this->_serviceRecords[idx]->servName);
+		// if (NULL != this->_serviceRecords[idx]->servName)
+		// 	my_free(this->_serviceRecords[idx]->servName);
 
-		my_free(this->_serviceRecords[idx]->name);
-		my_free(this->_serviceRecords[idx]);
+		// my_free(this->_serviceRecords[idx]->name);
+		// my_free(this->_serviceRecords[idx]);
 
 		this->_serviceRecords[idx] = NULL;
 	}
@@ -1433,7 +1443,7 @@ void EthernetBonjourClass::_finishedResolvingName(char* name, const byte ipAddr[
 		this->_nameFoundCallback( (const char*)name, ipAddr );
 	}
 
-	my_free(this->_resolveNames[0]);
+	//my_free(this->_resolveNames[0]);
 	this->_resolveNames[0] = NULL;
 }
 

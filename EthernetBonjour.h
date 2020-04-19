@@ -25,6 +25,10 @@ extern "C" {
    #include <inttypes.h>
 }
 
+#define MAX_MDNS_NAME (23)
+#define MAX_SERVICE_NAME (50)
+#define MAX_UDP_LENGTH (1024)
+
 typedef uint8_t byte;
 
 typedef enum _MDNSState_t {
@@ -60,9 +64,12 @@ typedef MDNSServiceProtocol_t MDNSServiceProtocol;
 typedef struct _MDNSServiceRecord_t {
    uint16_t                port;
    MDNSServiceProtocol_t   proto;
-   uint8_t*                name;
-   uint8_t*                servName;
-   uint8_t*                textContent;
+   uint8_t                 nameBuf[MAX_MDNS_NAME];
+   uint8_t*                name = nameBuf;
+   uint8_t                 servNameBuf[MAX_SERVICE_NAME];
+   uint8_t*                servName = servNameBuf;
+   uint8_t                 textContentBuf[MAX_UDP_LENGTH];
+   uint8_t*                textContent = textContentBuf;
 } MDNSServiceRecord_t;
 
 typedef void (*BonjourNameFoundCallback)(const char*, const byte[4]);
@@ -78,7 +85,8 @@ class EthernetBonjourClass :
 private:
    MDNSDataInternal_t    _mdnsData;
    MDNSState_t           _state;
-   uint8_t*             _bonjourName;
+   uint8_t              _bonjourNameBuf[MAX_MDNS_NAME];
+   uint8_t*             _bonjourName = _bonjourNameBuf;
    MDNSServiceRecord_t* _serviceRecords[NumMDNSServiceRecords];
    unsigned long        _lastAnnounceMillis;
    
